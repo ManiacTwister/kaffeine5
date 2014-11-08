@@ -21,8 +21,9 @@
 #ifndef DVBCONFIGDIALOG_H
 #define DVBCONFIGDIALOG_H
 
-#include <KDialog>
+#include <QDialog>
 
+class QDialogButtonBox;
 class QBoxLayout;
 class QButtonGroup;
 class QCheckBox;
@@ -34,7 +35,7 @@ class QTreeWidget;
 class KComboBox;
 class KJob;
 class KLineEdit;
-class KTabWidget;
+class QTabWidget;
 namespace KIO
 {
 class Job;
@@ -48,7 +49,7 @@ class DvbManager;
 class DvbSConfigObject;
 class DvbSLnbConfigObject;
 
-class DvbConfigDialog : public KDialog
+class DvbConfigDialog : public QDialog
 {
 	Q_OBJECT
 public:
@@ -72,7 +73,7 @@ private:
 	void accept();
 
 	DvbManager *manager;
-	KTabWidget *tabWidget;
+	QTabWidget *tabWidget;
 	KLineEdit *recordingFolderEdit;
 	KLineEdit *timeShiftFolderEdit;
 	QSpinBox *beginMarginBox;
@@ -87,7 +88,7 @@ private:
 	QList<DvbConfigPage *> configPages;
 };
 
-class DvbScanFileDownloadDialog : public KDialog
+class DvbScanFileDownloadDialog : public QDialog
 {
 	Q_OBJECT
 public:
@@ -104,6 +105,7 @@ private:
 	QProgressBar *progressBar;
 	QLabel *label;
 	KIO::TransferJob *job;
+    QDialogButtonBox* buttonBox;
 	QByteArray scanData;
 };
 

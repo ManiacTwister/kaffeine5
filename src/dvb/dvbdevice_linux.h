@@ -108,12 +108,16 @@ signals:
 private slots:
 	void componentAdded(const QString &udi);
 	void componentRemoved(const QString &udi);
+    void monitorActivated();
 
 private:
 	int readSysAttr(const QString &path);
 
 	QMap<int, DvbLinuxDevice *> devices;
 	QMap<QString, DvbLinuxDevice *> udis;
+    struct udev* udev;
+    struct udev_monitor* monitor;
+    QSocketNotifier* monitorNotifier;
 };
 
 #endif /* DVBDEVICE_LINUX_H */

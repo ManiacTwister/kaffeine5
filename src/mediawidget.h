@@ -22,8 +22,8 @@
 #define MEDIAWIDGET_H
 
 #include <QWidget>
-#include <KIcon>
-#include <KUrl>
+#include <QIcon>
+#include <QUrl>
 
 class QActionGroup;
 class QPushButton;
@@ -32,7 +32,7 @@ class QStringListModel;
 class KAction;
 class KActionCollection;
 class KComboBox;
-class KMenu;
+class QMenu;
 class KToolBar;
 class AbstractMediaWidget;
 class MediaSource;
@@ -43,7 +43,7 @@ class MediaWidget : public QWidget
 {
 	Q_OBJECT
 public:
-	MediaWidget(KMenu *menu_, KToolBar *toolBar, KActionCollection *collection,
+	MediaWidget(QMenu *menu_, KToolBar *toolBar, KActionCollection *collection,
 		QWidget *parent);
 	~MediaWidget();
 
@@ -95,7 +95,7 @@ public:
 	 */
 
 	void play(MediaSource *source_);
-	void play(const KUrl &url, const KUrl &subtitleUrl = KUrl());
+	void play(const QUrl &url, const QUrl &subtitleUrl = QUrl());
 	void playAudioCd(const QString &device);
 	void playVideoCd(const QString &device);
 	void playDvd(const QString &device);
@@ -145,7 +145,7 @@ signals:
 	void changeCaption(const QString &caption);
 	void resizeToVideo(MediaWidget::ResizeFactor resizeFactor);
 
-	void playlistUrlsDropped(const QList<KUrl> &urls);
+	void playlistUrlsDropped(const QList<QUrl> &urls);
 	void osdKeyPressed(int key);
 
 private slots:
@@ -178,44 +178,44 @@ private:
 	void resizeEvent(QResizeEvent *event);
 	void wheelEvent(QWheelEvent *event);
 
-	KMenu *menu;
+	QMenu *menu;
 	AbstractMediaWidget *backend;
 	OsdWidget *osdWidget;
 
-	KAction *actionPrevious;
-	KAction *actionPlayPause;
+	QAction *actionPrevious;
+	QAction *actionPlayPause;
 	QString textPlay;
 	QString textPause;
-	KIcon iconPlay;
-	KIcon iconPause;
-	KAction *actionStop;
-	KAction *actionNext;
-	KAction *fullScreenAction;
-	KAction *minimalModeAction;
+	QIcon iconPlay;
+	QIcon iconPause;
+	QAction *actionStop;
+	QAction *actionNext;
+	QAction *fullScreenAction;
+	QAction *minimalModeAction;
 	KComboBox *audioStreamBox;
 	KComboBox *subtitleBox;
 	QStringListModel *audioStreamModel;
 	QStringListModel *subtitleModel;
 	QString textSubtitlesOff;
-	KAction *muteAction;
-	KIcon mutedIcon;
-	KIcon unmutedIcon;
+	QAction *muteAction;
+	QIcon mutedIcon;
+	QIcon unmutedIcon;
 	QSlider *volumeSlider;
 	SeekSlider *seekSlider;
-	KAction *longSkipBackwardAction;
-	KAction *shortSkipBackwardAction;
-	KAction *shortSkipForwardAction;
-	KAction *longSkipForwardAction;
-	KAction *deinterlaceAction;
-	KAction *menuAction;
-	KMenu *titleMenu;
-	KMenu *chapterMenu;
-	KMenu *angleMenu;
+	QAction *longSkipBackwardAction;
+	QAction *shortSkipBackwardAction;
+	QAction *shortSkipForwardAction;
+	QAction *longSkipForwardAction;
+	QAction *deinterlaceAction;
+	QAction *menuAction;
+	QMenu *titleMenu;
+	QMenu *chapterMenu;
+	QMenu *angleMenu;
 	QActionGroup *titleGroup;
 	QActionGroup *chapterGroup;
 	QActionGroup *angleGroup;
-	KMenu *navigationMenu;
-	KAction *jumpToPositionAction;
+	QMenu *navigationMenu;
+	QAction *jumpToPositionAction;
 	QPushButton *timeButton;
 
 	DisplayMode displayMode;
@@ -248,7 +248,7 @@ public:
 	};
 
 	virtual Type getType() const { return Url; }
-	virtual KUrl getUrl() const { return KUrl(); }
+	virtual QUrl getUrl() const { return QUrl(); }
 	virtual bool hideCurrentTotalTime() const { return false; }
 	virtual bool overrideAudioStreams() const { return false; }
 	virtual bool overrideSubtitles() const { return false; }

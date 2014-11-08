@@ -21,10 +21,11 @@
 #ifndef DVBRECORDINGDIALOG_P_H
 #define DVBRECORDINGDIALOG_P_H
 
-#include <KDialog>
+#include <QDialog>
 #include "../tablemodel.h"
 #include "dvbrecording.h"
 
+class QDialogButtonBox;
 class QCheckBox;
 class KComboBox;
 class KLineEdit;
@@ -114,7 +115,7 @@ private:
 	DvbRecordingModel *recordingModel;
 };
 
-class DvbRecordingEditor : public KDialog
+class DvbRecordingEditor : public QDialog
 {
 	Q_OBJECT
 public:
@@ -141,6 +142,7 @@ private:
 	DurationEdit *durationEdit;
 	DateTimeEdit *endEdit;
 	QCheckBox *dayCheckBoxes[7];
+    QDialogButtonBox* buttonBox;
 };
 
 #endif /* DVBRECORDINGDIALOG_P_H */

@@ -23,14 +23,14 @@
 #include <QSqlError>
 #include <KLocalizedString>
 #include <KMessageBox>
-#include <KStandardDirs>
+#include <QStandardPaths>
 #include "log.h"
 #include "sqlinterface.h"
 
 SqlHelper::SqlHelper()
 {
 	database = QSqlDatabase::addDatabase(QLatin1String("QSQLITE"), QLatin1String("kaffeine"));
-	database.setDatabaseName(KStandardDirs::locateLocal("appdata", QLatin1String("sqlite.db")));
+	database.setDatabaseName(QStandardPaths::writableLocation(QStandardPaths::DataLocation) + "/" + QLatin1String("sqlite.db"));
 
 	timer.setInterval(5000);
 	connect(&timer, SIGNAL(timeout()), this, SLOT(collectSubmissions()));
@@ -45,7 +45,7 @@ bool SqlHelper::createInstance()
 	Q_ASSERT(instance == NULL);
 
 	if (!QSqlDatabase::isDriverAvailable(QLatin1String("QSQLITE"))) {
-		KMessageBox::queuedMessageBox(NULL, KMessageBox::Error,
+		KMessageBox::messageBox(NULL, KMessageBox::Error,
 			i18nc("message box", "Please install the Qt SQLite plugin."));
 		return false;
 	}
@@ -60,7 +60,7 @@ bool SqlHelper::createInstance()
 		}
 
 		details.append(instance->database.lastError().driverText());
-		KMessageBox::queuedDetailedError(NULL,
+		KMessageBox::detailedError(NULL,
 			i18nc("message box", "Cannot open the SQLite database."), details);
 		delete instance;
 		instance = NULL;

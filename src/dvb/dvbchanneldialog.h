@@ -137,8 +137,8 @@ public:
 	explicit DvbChannelView(QWidget *parent);
 	~DvbChannelView();
 
-	KAction *addEditAction();
-	KAction *addRemoveAction();
+	QAction *addEditAction();
+	QAction *addRemoveAction();
 	void setModel(DvbChannelTableModel *tableModel_);
 
 public slots:

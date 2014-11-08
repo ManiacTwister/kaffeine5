@@ -22,6 +22,7 @@
 #define CONFIGURATION_H
 
 #include <QObject>
+#include <KSharedConfig>
 
 class Configuration : public QObject
 {
@@ -32,6 +33,11 @@ private:
 
 public:
 	static Configuration *instance();
+
+    KSharedConfig::Ptr config()
+    {
+        return m_config;
+    }
 
 	enum StartupDisplayMode {
 		StartupNormalMode = 0,
@@ -72,6 +78,7 @@ private:
 	StartupDisplayMode startupDisplayMode;
 	int shortSkipDuration;
 	int longSkipDuration;
+    KSharedConfig::Ptr m_config;
 };
 
 #endif /* CONFIGURATION_H */

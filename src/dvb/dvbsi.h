@@ -22,6 +22,7 @@
 #define DVBSI_H
 
 #include <QPair>
+#include <QObject>
 #include "dvbbackenddevice.h"
 
 class DvbPmtSection;

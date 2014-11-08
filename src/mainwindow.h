@@ -27,7 +27,7 @@
 class QStackedLayout;
 class KCmdLineOptions;
 class KRecentFilesAction;
-class KTabBar;
+class QTabBar;
 class DvbTab;
 class PlayerTab;
 class PlaylistTab;
@@ -50,7 +50,7 @@ private slots:
 	void displayModeChanged();
 	void open();
 	void openUrl();
-	void openUrl(const KUrl &url);
+	void openUrl(const QUrl &url);
 	void openAudioCd(const QString &device = QString());
 	void openVideoCd(const QString &device = QString());
 	void openDvd(const QString &device = QString());
@@ -79,11 +79,10 @@ private:
 	KActionCollection *collection;
 	KRecentFilesAction *actionOpenRecent;
 	KToolBar *navigationBar;
-	KTabBar *tabBar;
+	QTabBar *tabBar;
 	KToolBar *controlBar;
 	bool autoHideControlBar;
 	QTimer *cursorHideTimer;
-	QList<KUrl> temporaryUrls;
 
 	MediaWidget *mediaWidget;
 	QStackedLayout *stackedLayout;

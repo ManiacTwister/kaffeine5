@@ -19,62 +19,30 @@
  */
 
 #include <QPointer>
+#include <QApplication>
 #include <KAboutData>
-#include <KCmdLineArgs>
-#include <KUniqueApplication>
+#include <KLocalizedString>
 #include "mainwindow.h"
 #include "sqlhelper.h"
 
-class KaffeineApplication : public KUniqueApplication
-{
-public:
-	KaffeineApplication();
-	~KaffeineApplication();
-
-private:
-	int newInstance();
-
-	QPointer<MainWindow> mainWindow;
-};
-
-KaffeineApplication::KaffeineApplication()
-{
-	if (!SqlHelper::createInstance()) {
-		return;
-	}
-
-	mainWindow = new MainWindow();
-}
-
-KaffeineApplication::~KaffeineApplication()
-{
-	// unlike qt, kde sets Qt::WA_DeleteOnClose and needs it to work properly
-	delete mainWindow; // QPointer; needed if kaffeine is closed via QCoreApplication::quit()
-}
-
-int KaffeineApplication::newInstance()
-{
-	if (mainWindow != NULL) {
-		mainWindow->parseArgs();
-	}
-
-	return KUniqueApplication::newInstance();
-}
-
 int main(int argc, char *argv[])
 {
-	KAboutData aboutData("kaffeine", 0, ki18n("Kaffeine"), "1.3-git",
-		ki18n("A media player for KDE with digital TV support."),
-		KAboutData::License_GPL_V2, ki18n("(C) 2007-2011 The Kaffeine Authors"),
-		KLocalizedString(), "http://kaffeine.kde.org");
+	KAboutData aboutData("kaffeine", i18n("Kaffeine"), "1.3-git",
+		i18n("A media player for KDE with digital TV support."),
+		KAboutLicense::GPL_V2, i18n("(C) 2007-2011 The Kaffeine Authors"),
+		QString(), "http://kaffeine.kde.org");
 
-	aboutData.addAuthor(ki18n("Christoph Pfister"), ki18n("Maintainer"),
+	aboutData.addAuthor(i18n("Christoph Pfister"), i18n("Maintainer"),
 		"christophpfister@gmail.com");
 
-	KCmdLineArgs::init(argc, argv, &aboutData);
-	KCmdLineArgs::addCmdLineOptions(MainWindow::cmdLineOptions());
-	KCmdLineArgs::addTempFileOption();
+    KAboutData::setApplicationData(aboutData);
 
-	KaffeineApplication app;
+	QApplication app(argc, argv);
+
+    SqlHelper::createInstance();
+
+    MainWindow* mainWindow = new MainWindow;
+    mainWindow->parseArgs();
+
 	return app.exec();
 }

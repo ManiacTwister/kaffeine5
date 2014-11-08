@@ -27,6 +27,8 @@
 #include <QProcess>
 #include <QPushButton>
 #include <QSpinBox>
+#include <QLayout>
+#include <QDialogButtonBox>
 #include <KComboBox>
 #include <KLocalizedString>
 #include "configuration.h"
@@ -34,7 +36,7 @@
 
 ConfigurationDialog::ConfigurationDialog(QWidget *parent) : KPageDialog(parent)
 {
-	setCaption(i18nc("@title:window", "Configure Kaffeine"));
+	setWindowTitle(i18nc("@title:window", "Configure Kaffeine"));
 
 	QWidget *widget = new QWidget(this);
 	QGridLayout *gridLayout = new QGridLayout(widget);
@@ -75,7 +77,7 @@ ConfigurationDialog::ConfigurationDialog(QWidget *parent) : KPageDialog(parent)
 	gridLayout->setRowStretch(3, 1);
 
 	KPageWidgetItem *page = new KPageWidgetItem(widget, i18nc("@title:group", "General"));
-	page->setIcon(KIcon(QLatin1String("configure")));
+	page->setIcon(QIcon::fromTheme(QLatin1String("configure")));
 	addPage(page);
 
 	widget = new QWidget(this);
@@ -96,7 +98,7 @@ ConfigurationDialog::ConfigurationDialog(QWidget *parent) : KPageDialog(parent)
 	gridLayout->setRowStretch(2, 1);
 
 	page = new KPageWidgetItem(widget, i18nc("@title:group", "Diagnostics"));
-	page->setIcon(KIcon(QLatin1String("page-zoom")));
+	page->setIcon(QIcon::fromTheme(QLatin1String("page-zoom")));
 	addPage(page);
 }
 
@@ -115,16 +117,15 @@ void ConfigurationDialog::accept()
 
 void ConfigurationDialog::showDmesg()
 {
-	KDialog *dialog = new DmesgDialog(this);
+	QDialog *dialog = new DmesgDialog(this);
 	dialog->setAttribute(Qt::WA_DeleteOnClose, true);
 	dialog->setModal(true);
 	dialog->show();
 }
 
-DmesgDialog::DmesgDialog(QWidget *parent) : KDialog(parent)
+DmesgDialog::DmesgDialog(QWidget *parent) : QDialog(parent)
 {
-	setButtons(KDialog::Close);
-	setCaption(i18nc("@title:window", "dmesg"));
+	setWindowTitle(i18nc("@title:window", "dmesg"));
 
 	dmesgProcess = new QProcess(this);
 	dmesgProcess->setProcessChannelMode(QProcess::MergedChannels);
@@ -134,7 +135,12 @@ DmesgDialog::DmesgDialog(QWidget *parent) : KDialog(parent)
 	dmesgTextEdit = new QPlainTextEdit(this);
 	dmesgTextEdit->setLineWrapMode(QPlainTextEdit::NoWrap);
 	dmesgTextEdit->setReadOnly(true);
-	setMainWidget(dmesgTextEdit);
+    QLayout* layout = new QVBoxLayout(this);
+    QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Close);
+    connect(buttonBox, SIGNAL(rejected()), SLOT(reject()));
+    layout->addWidget(dmesgTextEdit);
+    layout->addWidget(buttonBox);
+	setLayout(layout);
 
 	resize(100 * fontMetrics().averageCharWidth(), 28 * fontMetrics().height());
 }

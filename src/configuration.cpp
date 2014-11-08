@@ -22,13 +22,13 @@
 
 #include <KConfig>
 #include <KConfigGroup>
-#include <KGlobal>
 #include "log.h"
 
 Configuration::Configuration()
+    : m_config(KSharedConfig::openConfig())
 {
 	startupDisplayMode = StartupNormalMode;
-	int value = KGlobal::config()->group("MainWindow").readEntry("StartupDisplayMode",
+	int value = config()->group("MainWindow").readEntry("StartupDisplayMode",
 		static_cast<int>(startupDisplayMode));
 
 	if ((value >= 0) && (value <= StartupLastValue)) {
@@ -38,9 +38,9 @@ Configuration::Configuration()
 	}
 
 	shortSkipDuration =
-		KGlobal::config()->group("MediaObject").readEntry("ShortSkipDuration", 15);
+		config()->group("MediaObject").readEntry("ShortSkipDuration", 15);
 	longSkipDuration =
-		KGlobal::config()->group("MediaObject").readEntry("LongSkipDuration", 60);
+		config()->group("MediaObject").readEntry("LongSkipDuration", 60);
 }
 
 Configuration::~Configuration()
@@ -60,7 +60,7 @@ void Configuration::setStartupDisplayMode(int newStartupDisplayMode)
 {
 	if ((newStartupDisplayMode >= 0) && (newStartupDisplayMode <= StartupLastValue)) {
 		startupDisplayMode = static_cast<StartupDisplayMode>(newStartupDisplayMode);
-		KGlobal::config()->group("MainWindow").writeEntry("StartupDisplayMode",
+		config()->group("MainWindow").writeEntry("StartupDisplayMode",
 			static_cast<int>(startupDisplayMode));
 	} else {
 		Log("Configuration::setStartupDisplayMode: unknown startup display mode") <<
@@ -71,14 +71,14 @@ void Configuration::setStartupDisplayMode(int newStartupDisplayMode)
 void Configuration::setShortSkipDuration(int newShortSkipDuration)
 {
 	shortSkipDuration = newShortSkipDuration;
-	KGlobal::config()->group("MediaObject").writeEntry("ShortSkipDuration", shortSkipDuration);
+	config()->group("MediaObject").writeEntry("ShortSkipDuration", shortSkipDuration);
 	emit shortSkipDurationChanged(shortSkipDuration);
 }
 
 void Configuration::setLongSkipDuration(int newLongSkipDuration)
 {
 	longSkipDuration = newLongSkipDuration;
-	KGlobal::config()->group("MediaObject").writeEntry("LongSkipDuration", longSkipDuration);
+	config()->group("MediaObject").writeEntry("LongSkipDuration", longSkipDuration);
 	emit longSkipDurationChanged(longSkipDuration);
 }
 

@@ -29,9 +29,9 @@
 #include <QLabel>
 #include <QMimeData>
 #include <QSpinBox>
-#include <KAction>
-#include <KComboBox>
-#include <KLineEdit>
+#include <QAction>
+#include <QComboBox>
+#include <QLineEdit>
 #include <KLocalizedString>
 #include <KMessageBox>
 #include "../log.h"
@@ -122,15 +122,15 @@ QVariant DvbChannelTableModel::data(const QModelIndex &index, int role) const
 			if (index.column() == 0) {
 				if (channel->hasVideo) {
 					if (!channel->isScrambled) {
-						return KIcon(QLatin1String("video-television"));
+						return QIcon::fromTheme(QLatin1String("video-television"));
 					} else {
-						return KIcon(QLatin1String("video-television-encrypted"));
+						return QIcon::fromTheme(QLatin1String("video-television-encrypted"));
 					}
 				} else {
 					if (!channel->isScrambled) {
-						return KIcon(QLatin1String("text-speak"));
+						return QIcon::fromTheme(QLatin1String("text-speak"));
 					} else {
-						return KIcon(QLatin1String("audio-radio-encrypted"));
+						return QIcon::fromTheme(QLatin1String("audio-radio-encrypted"));
 					}
 				}
 			}
@@ -285,17 +285,17 @@ DvbChannelView::~DvbChannelView()
 {
 }
 
-KAction *DvbChannelView::addEditAction()
+QAction *DvbChannelView::addEditAction()
 {
-	KAction *action = new KAction(KIcon(QLatin1String("configure")), i18nc("@action", "Edit"), this);
+	QAction *action = new QAction(QIcon::fromTheme(QLatin1String("configure")), i18nc("@action", "Edit"), this);
 	connect(action, SIGNAL(triggered()), this, SLOT(editChannel()));
 	addAction(action);
 	return action;
 }
 
-KAction *DvbChannelView::addRemoveAction()
+QAction *DvbChannelView::addRemoveAction()
 {
-	KAction *action = new KAction(KIcon(QLatin1String("edit-delete")), i18nc("@action", "Remove"), this);
+	QAction *action = new QAction(QIcon::fromTheme(QLatin1String("edit-delete")), i18nc("@action", "Remove"), this);
 	connect(action, SIGNAL(triggered()), this, SLOT(removeChannel()));
 	addAction(action);
 	return action;
@@ -326,7 +326,7 @@ void DvbChannelView::editChannel()
 	QModelIndex index = currentIndex();
 
 	if (index.isValid()) {
-		KDialog *dialog = new DvbChannelEditor(tableModel, tableModel->value(index), this);
+		QDialog *dialog = new DvbChannelEditor(tableModel, tableModel->value(index), this);
 		dialog->setAttribute(Qt::WA_DeleteOnClose, true);
 		dialog->setModal(true);
 		dialog->show();
@@ -529,35 +529,34 @@ static QLatin1String enumToString(AtscTransponder::Modulation modulation)
 }
 
 DvbChannelEditor::DvbChannelEditor(DvbChannelTableModel *model_, const DvbSharedChannel &channel_,
-	QWidget *parent) : KDialog(parent), model(model_), channel(channel_)
+	QWidget *parent) : QDialog(parent), model(model_), channel(channel_)
 {
-	setCaption(i18nc("@title:window", "Edit Channel"));
+	setWindowTitle(i18nc("@title:window", "Edit Channel"));
 
-	QWidget *widget = new QWidget(this);
-	QBoxLayout *mainLayout = new QVBoxLayout(widget);
+	QBoxLayout *mainLayout = new QVBoxLayout(this);
 	QGridLayout *gridLayout = new QGridLayout();
 
-	nameEdit = new KLineEdit(widget);
+	nameEdit = new QLineEdit(this);
 	nameEdit->setText(channel->name);
 	gridLayout->addWidget(nameEdit, 0, 1);
 
-	QLabel *label = new QLabel(i18nc("@label tv channel", "Name:"), widget);
+	QLabel *label = new QLabel(i18nc("@label tv channel", "Name:"), this);
 	label->setBuddy(nameEdit);
 	gridLayout->addWidget(label, 0, 0);
 
-	numberBox = new QSpinBox(widget);
+	numberBox = new QSpinBox(this);
 	numberBox->setRange(1, 99999);
 	numberBox->setValue(channel->number);
 	gridLayout->addWidget(numberBox, 0, 3);
 
-	label = new QLabel(i18nc("@label tv channel", "Number:"), widget);
+	label = new QLabel(i18nc("@label tv channel", "Number:"), this);
 	label->setBuddy(numberBox);
 	gridLayout->addWidget(label, 0, 2);
 	mainLayout->addLayout(gridLayout);
 
 	QBoxLayout *boxLayout = new QHBoxLayout();
 
-	QGroupBox *groupBox = new QGroupBox(widget);
+	QGroupBox *groupBox = new QGroupBox(this);
 	gridLayout = new QGridLayout(groupBox);
 	gridLayout->addWidget(new QLabel(i18nc("@label tv channel", "Source:")), 0, 0);
 	gridLayout->addWidget(new QLabel(channel->source), 0, 1);
@@ -671,7 +670,7 @@ DvbChannelEditor::DvbChannelEditor(DvbChannelTableModel *model_, const DvbShared
 	gridLayout->setRowStretch(row, 1);
 	boxLayout->addWidget(groupBox);
 
-	groupBox = new QGroupBox(widget);
+	groupBox = new QGroupBox(this);
 	gridLayout = new QGridLayout(groupBox);
 	gridLayout->addWidget(new QLabel(i18n("Network ID:")), 0, 0);
 
@@ -696,7 +695,7 @@ DvbChannelEditor::DvbChannelEditor(DvbChannelTableModel *model_, const DvbShared
 
 	gridLayout->addWidget(new QLabel(i18n("Audio channel:")), 3, 0);
 
-	audioStreamBox = new KComboBox(groupBox);
+	audioStreamBox = new QComboBox(groupBox);
 
 	for (int i = 0; i < pmtParser.audioPids.size(); ++i) {
 		const QPair<int, QString> &it = pmtParser.audioPids.at(i);
@@ -729,7 +728,7 @@ DvbChannelEditor::DvbChannelEditor(DvbChannelTableModel *model_, const DvbShared
 	boxLayout->addWidget(groupBox);
 	mainLayout->addLayout(boxLayout);
 
-	setMainWidget(widget);
+	setLayout(mainLayout);
 }
 
 DvbChannelEditor::~DvbChannelEditor()
@@ -751,5 +750,5 @@ void DvbChannelEditor::accept()
 
 	updatedChannel.isScrambled = scrambledBox->isChecked();
 	model->getChannelModel()->updateChannel(channel, updatedChannel);
-	KDialog::accept();
+	QDialog::accept();
 }

@@ -22,6 +22,7 @@
 #define DVBCHANNEL_H
 
 #include <QMultiHash>
+#include <QObject>
 #include "../shareddata.h"
 #include "../sqlinterface.h"
 #include "dvbtransponder.h"

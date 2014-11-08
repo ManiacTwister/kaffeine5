@@ -86,8 +86,8 @@ public:
 QString Log::getLog()
 {
 	if (data != NULL) {
-		QMutexLocker locker(&data->mutex);
-		return data->buffer;
+		QMutexLocker locker(&data.load()->mutex);
+		return data.load()->buffer;
 	}
 
 	return QString();
@@ -104,27 +104,27 @@ void Log::begin(const char *message)
 		}
 	}
 
-	data->begin(message);
+	data.load()->begin(message);
 }
 
 void Log::append(qint64 value)
 {
-	data->append(value);
+	data.load()->append(value);
 }
 
 void Log::append(quint64 value)
 {
-	data->append(value);
+	data.load()->append(value);
 }
 
 void Log::append(const QString &string)
 {
-	data->append(string);
+	data.load()->append(string);
 }
 
 void Log::end()
 {
-	data->end();
+	data.load()->end();
 }
 
 QBasicAtomicPointer<LogPrivate> Log::data = Q_BASIC_ATOMIC_INITIALIZER(0);

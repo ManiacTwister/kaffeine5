@@ -28,10 +28,10 @@
 #include <QProgressBar>
 #include <QPushButton>
 #include <QSortFilterProxyModel>
-#include <KAction>
+#include <QAction>
 #include <KComboBox>
 #include <KLed>
-#include <KLocale>
+#include <KLocalizedString>
 #include <KMessageBox>
 #include "dvbchanneldialog.h"
 #include "dvbdevice.h"
@@ -163,15 +163,15 @@ QVariant DvbPreviewChannelTableModel::data(const QModelIndex &index, int role) c
 		if (index.column() == 0) {
 			if (channel.hasVideo) {
 				if (!channel.isScrambled) {
-					return KIcon(QLatin1String("video-television"));
+					return QIcon::fromTheme(QLatin1String("video-television"));
 				} else {
-					return KIcon(QLatin1String("video-television-encrypted"));
+					return QIcon::fromTheme(QLatin1String("video-television-encrypted"));
 				}
 			} else {
 				if (!channel.isScrambled) {
-					return KIcon(QLatin1String("text-speak"));
+					return QIcon::fromTheme(QLatin1String("text-speak"));
 				} else {
-					return KIcon(QLatin1String("audio-radio-encrypted"));
+					return QIcon::fromTheme(QLatin1String("audio-radio-encrypted"));
 				}
 			}
 		}
@@ -214,10 +214,10 @@ QVariant DvbPreviewChannelTableModel::headerData(int section, Qt::Orientation or
 	return QVariant();
 }
 
-DvbScanDialog::DvbScanDialog(DvbManager *manager_, QWidget *parent) : KDialog(parent),
+DvbScanDialog::DvbScanDialog(DvbManager *manager_, QWidget *parent) : QDialog(parent),
 	manager(manager_), internal(NULL)
 {
-	setCaption(i18n("Channels"));
+	setWindowTitle(i18n("Channels"));
 
 	QWidget *mainWidget = new QWidget(this);
 	QBoxLayout *mainLayout = new QHBoxLayout(mainWidget);
@@ -243,7 +243,7 @@ DvbScanDialog::DvbScanDialog(DvbManager *manager_, QWidget *parent) : KDialog(pa
 	connect(channelTableModel, SIGNAL(checkChannelDragAndDrop(bool*)),
 		channelView, SLOT(checkChannelDragAndDrop(bool*)));
 
-	KAction *action = channelView->addEditAction();
+	QAction *action = channelView->addEditAction();
 	QPushButton *pushButton = new QPushButton(action->icon(), action->text(), groupBox);
 	connect(pushButton, SIGNAL(clicked()), channelView, SLOT(editChannel()));
 	boxLayout->addWidget(pushButton);
@@ -253,7 +253,7 @@ DvbScanDialog::DvbScanDialog(DvbManager *manager_, QWidget *parent) : KDialog(pa
 	connect(pushButton, SIGNAL(clicked()), channelView, SLOT(removeChannel()));
 	boxLayout->addWidget(pushButton);
 
-	pushButton = new QPushButton(KIcon(QLatin1String("edit-clear-list")),
+	pushButton = new QPushButton(QIcon::fromTheme(QLatin1String("edit-clear-list")),
 		i18nc("remove all items from a list", "Clear"), groupBox);
 	connect(pushButton, SIGNAL(clicked()), channelView, SLOT(removeAllChannels()));
 	boxLayout->addWidget(pushButton);
@@ -272,13 +272,13 @@ DvbScanDialog::DvbScanDialog(DvbManager *manager_, QWidget *parent) : KDialog(pa
 	sourceBox = new KComboBox(groupBox);
 	groupLayout->addWidget(sourceBox);
 
-	scanButton = new QPushButton(KIcon(QLatin1String("edit-find")), i18n("Start Scan"), groupBox);
+	scanButton = new QPushButton(QIcon::fromTheme(QLatin1String("edit-find")), i18n("Start Scan"), groupBox);
 	scanButton->setCheckable(true);
 	connect(scanButton, SIGNAL(clicked(bool)), this, SLOT(scanButtonClicked(bool)));
 	groupLayout->addWidget(scanButton);
 
 	QLabel *label = new QLabel(i18n("Scan data last updated on %1",
-		KGlobal::locale()->formatDate(manager->getScanDataDate(), KLocale::ShortDate)));
+		QLocale().toString(manager->getScanDataDate(), QLocale::ShortFormat)));
 	label->setWordWrap(true);
 	groupLayout->addWidget(label);
 
@@ -372,7 +372,7 @@ DvbScanDialog::DvbScanDialog(DvbManager *manager_, QWidget *parent) : KDialog(pa
 	connect(this, SIGNAL(accepted()), this, SLOT(dialogAccepted()));
 	connect(&statusTimer, SIGNAL(timeout()), this, SLOT(updateStatus()));
 
-	setMainWidget(mainWidget);
+	setLayout(mainLayout);
 }
 
 DvbScanDialog::~DvbScanDialog()

@@ -23,18 +23,20 @@
 #include <QDBusConnection>
 #include <QHoverEvent>
 #include <QStackedLayout>
+#include <QCommandLineParser>
 #include <KActionCollection>
-#include <KCmdLineOptions>
-#include <KFileDialog>
-#include <KInputDialog>
+#include <QFileDialog>
+#include <QInputDialog>
 #include <kio/deletejob.h>
-#include <KMenu>
-#include <KMenuBar>
+#include <QMenu>
+#include <QMenuBar>
 #include <KRecentFilesAction>
 #include <KShortcutsDialog>
 #include <KStatusNotifierItem>
-#include <KTabBar>
+#include <QTabBar>
+#include <KLocalizedString>
 #include <KToolBar>
+#include <KConfigGroup>
 #include "dvb/dvbtab.h"
 #include "playlist/playlisttab.h"
 #include "configuration.h"
@@ -68,7 +70,7 @@ public:
 private:
 	void activate() { }
 
-	QAbstractButton *addShortcut(const QString &name, const KIcon &icon, QWidget *parent);
+	QAbstractButton *addShortcut(const QString &name, const QIcon &icon, QWidget *parent);
 };
 
 StartTab::StartTab(MainWindow *mainWindow)
@@ -82,35 +84,35 @@ StartTab::StartTab(MainWindow *mainWindow)
 	gridLayout->setSpacing(15);
 
 	QAbstractButton *button =
-		addShortcut(i18n("&1 Play File"), KIcon(QLatin1String("video-x-generic")), this);
+		addShortcut(i18n("&1 Play File"), QIcon::fromTheme(QLatin1String("video-x-generic")), this);
 	button->setShortcut(Qt::Key_1);
 	connect(button, SIGNAL(clicked()), mainWindow, SLOT(open()));
 	gridLayout->addWidget(button, 0, 0);
 
-	button = addShortcut(i18n("&2 Play Audio CD"), KIcon(QLatin1String("media-optical-audio")), this);
+	button = addShortcut(i18n("&2 Play Audio CD"), QIcon::fromTheme(QLatin1String("media-optical-audio")), this);
 	button->setShortcut(Qt::Key_2);
 	connect(button, SIGNAL(clicked()), mainWindow, SLOT(openAudioCd()));
 	gridLayout->addWidget(button, 0, 1);
 
-	button = addShortcut(i18n("&3 Play Video CD"), KIcon(QLatin1String("media-optical")), this);
+	button = addShortcut(i18n("&3 Play Video CD"), QIcon::fromTheme(QLatin1String("media-optical")), this);
 	button->setShortcut(Qt::Key_3);
 	connect(button, SIGNAL(clicked()), mainWindow, SLOT(openVideoCd()));
 	gridLayout->addWidget(button, 0, 2);
 
-	button = addShortcut(i18n("&4 Play DVD"), KIcon(QLatin1String("media-optical")), this);
+	button = addShortcut(i18n("&4 Play DVD"), QIcon::fromTheme(QLatin1String("media-optical")), this);
 	button->setShortcut(Qt::Key_4);
 	connect(button, SIGNAL(clicked()), mainWindow, SLOT(openDvd()));
 	gridLayout->addWidget(button, 1, 0);
 
 #if HAVE_DVB == 1
-	button = addShortcut(i18n("&5 Digital TV"), KIcon(QLatin1String("video-television")), this);
+	button = addShortcut(i18n("&5 Digital TV"), QIcon::fromTheme(QLatin1String("video-television")), this);
 	button->setShortcut(Qt::Key_5);
 	connect(button, SIGNAL(clicked()), mainWindow, SLOT(playDvb()));
 	gridLayout->addWidget(button, 1, 1);
 #endif /* HAVE_DVB == 1 */
 }
 
-QAbstractButton *StartTab::addShortcut(const QString &name, const KIcon &icon, QWidget *parent)
+QAbstractButton *StartTab::addShortcut(const QString &name, const QIcon &icon, QWidget *parent)
 {
 	// QPushButton has visual problems with big icons
 	QToolButton *button = new QToolButton(parent);
@@ -149,40 +151,40 @@ MainWindow::MainWindow()
 {
 	// menu structure
 
-	KMenuBar *menuBar = KMainWindow::menuBar();
+	QMenuBar *menuBar = KMainWindow::menuBar();
 	collection = new KActionCollection(this);
 
-	KMenu *menu = new KMenu(i18n("&File"), this);
+	QMenu *menu = new QMenu(i18n("&File"), this);
 	menuBar->addMenu(menu);
 
-	KAction *action = KStandardAction::open(this, SLOT(open()), collection);
+	QAction *action = KStandardAction::open(this, SLOT(open()), collection);
 	menu->addAction(collection->addAction(QLatin1String("file_open"), action));
 
-	action = new KAction(KIcon(QLatin1String("text-html")),
+	action = new QAction(QIcon::fromTheme(QLatin1String("text-html")),
 		i18nc("@action:inmenu", "Open URL..."), collection);
 	action->setShortcut(Qt::CTRL | Qt::Key_U);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openUrl()));
 	menu->addAction(collection->addAction(QLatin1String("file_open_url"), action));
 
-	actionOpenRecent = KStandardAction::openRecent(this, SLOT(openUrl(KUrl)), collection);
-	actionOpenRecent->loadEntries(KGlobal::config()->group("Recent Files"));
+	actionOpenRecent = KStandardAction::openRecent(this, SLOT(openUrl(QUrl)), collection);
+	actionOpenRecent->loadEntries(Configuration::instance()->config()->group("Recent Files"));
 	menu->addAction(collection->addAction(QLatin1String("file_open_recent"), actionOpenRecent));
 
 	menu->addSeparator();
 
-	action = new KAction(KIcon(QLatin1String("media-optical-audio")), i18n("Play Audio CD"), collection);
+	action = new QAction(QIcon::fromTheme(QLatin1String("media-optical-audio")), i18n("Play Audio CD"), collection);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openAudioCd()));
 	menu->addAction(collection->addAction(QLatin1String("file_play_audiocd"), action));
 
-	action = new KAction(KIcon(QLatin1String("media-optical")), i18n("Play Video CD"), collection);
+	action = new QAction(QIcon::fromTheme(QLatin1String("media-optical")), i18n("Play Video CD"), collection);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openVideoCd()));
 	menu->addAction(collection->addAction(QLatin1String("file_play_videocd"), action));
 
-	action = new KAction(KIcon(QLatin1String("media-optical")), i18n("Play DVD"), collection);
+	action = new QAction(QIcon::fromTheme(QLatin1String("media-optical")), i18n("Play DVD"), collection);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openDvd()));
 	menu->addAction(collection->addAction(QLatin1String("file_play_dvd"), action));
 
-	action = new KAction(KIcon(QLatin1String("media-optical")), i18nc("@action:inmenu", "Play DVD Folder"),
+	action = new QAction(QIcon::fromTheme(QLatin1String("media-optical")), i18nc("@action:inmenu", "Play DVD Folder"),
 		collection);
 	connect(action, SIGNAL(triggered()), this, SLOT(playDvdFolder()));
 	menu->addAction(collection->addAction(QLatin1String("file_play_dvd_folder"), action));
@@ -192,18 +194,18 @@ MainWindow::MainWindow()
 	action = KStandardAction::quit(this, SLOT(close()), collection);
 	menu->addAction(collection->addAction(QLatin1String("file_quit"), action));
 
-	KMenu *playerMenu = new KMenu(i18n("&Playback"), this);
+	QMenu *playerMenu = new QMenu(i18n("&Playback"), this);
 	menuBar->addMenu(playerMenu);
 
-	KMenu *playlistMenu = new KMenu(i18nc("menu bar", "Play&list"), this);
+	QMenu *playlistMenu = new QMenu(i18nc("menu bar", "Play&list"), this);
 	menuBar->addMenu(playlistMenu);
 
 #if HAVE_DVB == 1
-	KMenu *dvbMenu = new KMenu(i18n("&Television"), this);
+	QMenu *dvbMenu = new QMenu(i18n("&Television"), this);
 	menuBar->addMenu(dvbMenu);
 #endif /* HAVE_DVB == 1 */
 
-	menu = new KMenu(i18n("&Settings"), this);
+	menu = new QMenu(i18n("&Settings"), this);
 	menuBar->addMenu(menu);
 
 	action = KStandardAction::keyBindings(this, SLOT(configureKeys()), collection);
@@ -221,14 +223,14 @@ MainWindow::MainWindow()
 	connect(navigationBar, SIGNAL(orientationChanged(Qt::Orientation)),
 		this, SLOT(navigationBarOrientationChanged(Qt::Orientation)));
 
-	tabBar = new KTabBar(navigationBar);
-	tabBar->addTab(KIcon(QLatin1String("start-here-kde")), i18n("Start"));
-	tabBar->addTab(KIcon(QLatin1String("kaffeine")), i18n("Playback"));
-	tabBar->addTab(KIcon(QLatin1String("view-media-playlist")), i18n("Playlist"));
+	tabBar = new QTabBar(navigationBar);
+	tabBar->addTab(QIcon::fromTheme(QLatin1String("start-here-kde")), i18n("Start"));
+	tabBar->addTab(QIcon::fromTheme(QLatin1String("kaffeine")), i18n("Playback"));
+	tabBar->addTab(QIcon::fromTheme(QLatin1String("view-media-playlist")), i18n("Playlist"));
 #if HAVE_DVB == 1
-	tabBar->addTab(KIcon(QLatin1String("video-television")), i18n("Television"));
+	tabBar->addTab(QIcon::fromTheme(QLatin1String("video-television")), i18n("Television"));
 #endif /* HAVE_DVB == 1 */
-	tabBar->setShape(KTabBar::RoundedWest);
+	tabBar->setShape(QTabBar::RoundedWest);
 	tabBar->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	connect(tabBar, SIGNAL(currentChanged(int)), this, SLOT(activateTab(int)));
 	navigationBar->addWidget(tabBar);
@@ -335,7 +337,7 @@ MainWindow::MainWindow()
 		mediaWidget->setDisplayMode(MediaWidget::FullScreenMode);
 		break;
 	case Configuration::StartupRememberLastSetting: {
-		int value = KGlobal::config()->group("MainWindow").readEntry("DisplayMode", 0);
+		int value = Configuration::instance()->config()->group("MainWindow").readEntry("DisplayMode", 0);
 
 		switch (value) {
 		case 0:
@@ -356,11 +358,7 @@ MainWindow::MainWindow()
 
 MainWindow::~MainWindow()
 {
-	actionOpenRecent->saveEntries(KGlobal::config()->group("Recent Files"));
-
-	if (!temporaryUrls.isEmpty()) {
-		KIO::del(temporaryUrls);
-	}
+	actionOpenRecent->saveEntries(Configuration::instance()->config()->group("Recent Files"));
 
 	int value = 0;
 
@@ -371,124 +369,105 @@ MainWindow::~MainWindow()
 	case MediaWidget::FullScreenReturnToMinimalMode: value = 2; break;
 	}
 
-	KGlobal::config()->group("MainWindow").writeEntry("DisplayMode", value);
-}
-
-KCmdLineOptions MainWindow::cmdLineOptions()
-{
-	KCmdLineOptions options;
-	options.add("f");
-	options.add("fullscreen", ki18n("Start in full screen mode"));
-	options.add("audiocd", ki18n("Play Audio CD"));
-	options.add("videocd", ki18n("Play Video CD"));
-	options.add("dvd", ki18n("Play DVD"));
-	options.add("tv <channel>", ki18nc("command line option", "(deprecated option)"));
-	options.add("channel <name / number>", ki18nc("command line option", "Play TV channel"));
-	options.add("lastchannel", ki18nc("command line option", "Play last tuned TV channel"));
-	options.add("dumpdvb", ki18nc("command line option", "Dump dvb data (debug option)"));
-	options.add("+[file]", ki18n("Files or URLs to play"));
-	return options;
+	Configuration::instance()->config()->group("MainWindow").writeEntry("DisplayMode", value);
 }
 
 void MainWindow::parseArgs()
 {
-	KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
+    QCommandLineOption fullscreen(QStringList() << "f" << "fullscreen", ki18n("Start in full screen mode").toString());
+    QCommandLineOption audiocd("audiocd", ki18n("Play Audio CD").toString());
+    QCommandLineOption videocd("videocd", ki18n("Play Video CD").toString());
+    QCommandLineOption dvd("dvd", ki18n("Play DVD").toString());
+    QCommandLineOption tv("tv", ki18nc("command line option", "(deprecated option)").toString(), "channel");
+    QCommandLineOption channel("channel", ki18nc("command line option", "Play TV channel").toString(), "name / number");
+    QCommandLineOption lastchannel("lastchannel", ki18nc("command line option", "Play last tuned TV channel").toString());
+    QCommandLineOption dumpdvb("dumpdvb", ki18nc("command line option", "Dump dvb data (debug option)").toString());
 
-	if (args->isSet("fullscreen")) {
+    QCommandLineParser parser;
+    parser.addOption(fullscreen);
+    parser.addOption(audiocd);
+    parser.addOption(videocd);
+    parser.addOption(dvd);
+    parser.addOption(tv);
+    parser.addOption(channel);
+    parser.addOption(lastchannel);
+    parser.addOption(dumpdvb);
+    parser.addPositionalArgument("file", ki18n("Files or URLs to play").toString());
+    parser.process(*qApp);
+
+	if (parser.isSet(fullscreen)) {
 		mediaWidget->setDisplayMode(MediaWidget::FullScreenMode);
 	}
 
-	if (args->isSet("audiocd")) {
-		if (args->count() > 0) {
-			openAudioCd(args->arg(0));
-		} else {
+	if (parser.isSet(audiocd)) {
+		if (parser.values(audiocd).empty()) {
 			openAudioCd();
+		} else {
+			openAudioCd(parser.values(audiocd).first());
 		}
 
-		args->clear();
 		return;
 	}
 
-	if (args->isSet("videocd")) {
-		if (args->count() > 0) {
-			openVideoCd(args->arg(0));
-		} else {
+	if (parser.isSet(videocd)) {
+		if (parser.values(videocd).empty()) {
 			openVideoCd();
+		} else {
+			openVideoCd(parser.values(videocd).first());
 		}
 
-		args->clear();
 		return;
 	}
 
-	if (args->isSet("dvd")) {
-		if (args->count() > 0) {
-			openDvd(args->arg(0));
-		} else {
+	if (parser.isSet(dvd)) {
+		if (parser.values(dvd).empty()) {
 			openDvd();
+		} else {
+			openDvd(parser.values(dvd).first());
 		}
 
-		args->clear();
 		return;
 	}
 
 #if HAVE_DVB == 1
-	if (args->isSet("dumpdvb")) {
+	if (parser.isSet(dumpdvb)) {
 		dvbTab->enableDvbDump();
 	}
 
-	QString channel = args->getOption("channel");
-
-	if (!channel.isEmpty()) {
+	if (parser.isSet(channel)) {
 		activateTab(DvbTabId);
-		dvbTab->playChannel(channel);
+		dvbTab->playChannel(parser.value(channel));
 
-		args->clear();
 		return;
 	}
 
-	channel = args->getOption("tv");
-
-	if (!channel.isEmpty()) {
+	if (parser.isSet(tv)) {
 		activateTab(DvbTabId);
-		dvbTab->playChannel(channel);
+		dvbTab->playChannel(parser.value(tv));
 
-		args->clear();
 		return;
 	}
 
-	if (args->isSet("lastchannel")) {
+	if (parser.isSet(lastchannel)) {
 		activateTab(DvbTabId);
 		dvbTab->playLastChannel();
 
-		args->clear();
 		return;
 	}
 #endif /* HAVE_DVB == 1 */
 
-	if (args->count() > 0) {
-		QList<KUrl> urls;
+	QList<QUrl> urls;
 
-		for (int i = 0; i < args->count(); ++i) {
-			KUrl url = args->url(i);
+	foreach (QUrl url, parser.positionalArguments())
+		if (url.isValid())
+			urls.append(url);
 
-			if (url.isValid()) {
-				urls.append(url);
-			}
-		}
-
-		if (args->isTempFileSet()) {
-			temporaryUrls.append(urls);
-		}
-
-		if (urls.size() >= 2) {
-			activateTab(PlaylistTabId);
-			playlistTab->appendToVisiblePlaylist(urls, true);
-		} else if (!urls.isEmpty()) {
-			openUrl(urls.at(0));
-		}
+	if (urls.size() >= 2) {
+		activateTab(PlaylistTabId);
+		playlistTab->appendToVisiblePlaylist(urls, true);
+	} else if (!urls.isEmpty()) {
+		openUrl(urls.first());
 	}
-
-	args->clear();
 }
 
 void MainWindow::displayModeChanged()
@@ -533,7 +512,7 @@ void MainWindow::displayModeChanged()
 
 void MainWindow::open()
 {
-	QList<KUrl> urls = KFileDialog::getOpenUrls(KUrl(), MediaWidget::extensionFilter(), this);
+	QList<QUrl> urls = QFileDialog::getOpenFileUrls(this, QString(), QUrl(), MediaWidget::extensionFilter());
 
 	if (urls.size() >= 2) {
 		activateTab(PlaylistTabId);
@@ -545,24 +524,24 @@ void MainWindow::open()
 
 void MainWindow::openUrl()
 {
-	openUrl(KInputDialog::getText(i18nc("@title:window", "Open URL"), i18n("Enter a URL:")));
+	openUrl(QInputDialog::getText(this, i18nc("@title:window", "Open URL"), i18n("Enter a URL:")));
 }
 
-void MainWindow::openUrl(const KUrl &url)
+void MainWindow::openUrl(const QUrl &url)
 {
 	if (!url.isValid()) {
 		return;
 	}
 
 	// we need to copy "url" because addUrl() may invalidate it
-	KUrl copy(url);
+	QUrl copy(url);
 	actionOpenRecent->addUrl(copy); // moves the url to the top of the list
 
 	if (currentTabIndex != PlaylistTabId) {
 		activateTab(PlayerTabId);
 	}
 
-	playlistTab->appendToVisiblePlaylist(QList<KUrl>() << copy, true);
+	playlistTab->appendToVisiblePlaylist(QList<QUrl>() << copy, true);
 }
 
 void MainWindow::openAudioCd(const QString &device)
@@ -585,7 +564,7 @@ void MainWindow::openDvd(const QString &device)
 
 void MainWindow::playDvdFolder()
 {
-	QString folder = KFileDialog::getExistingDirectory(KUrl(), this);
+	QString folder = QFileDialog::getExistingDirectory(this);
 
 	if (!folder.isEmpty()) {
 		openDvd(folder);
@@ -631,7 +610,7 @@ void MainWindow::configureKeys()
 
 void MainWindow::configureKaffeine()
 {
-	KDialog *dialog = new ConfigurationDialog(this);
+	QDialog *dialog = new ConfigurationDialog(this);
 	dialog->setAttribute(Qt::WA_DeleteOnClose, true);
 	dialog->setModal(true);
 	dialog->show();
@@ -640,9 +619,9 @@ void MainWindow::configureKaffeine()
 void MainWindow::navigationBarOrientationChanged(Qt::Orientation orientation)
 {
 	if (orientation == Qt::Horizontal) {
-		tabBar->setShape(KTabBar::RoundedNorth);
+		tabBar->setShape(QTabBar::RoundedNorth);
 	} else {
-		tabBar->setShape(KTabBar::RoundedWest);
+		tabBar->setShape(QTabBar::RoundedWest);
 	}
 }
 

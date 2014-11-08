@@ -30,23 +30,33 @@
 #include <QSpinBox>
 #include <QToolButton>
 #include <QTreeWidget>
+#include <QDialogButtonBox>
 #include <KComboBox>
-#include <KFileDialog>
+#include <QFileDialog>
 #include <KIO/Job>
+#include <KLocalizedString>
 #include <KLineEdit>
-#include <KLocale>
-#include <KTabWidget>
+#include <QTabWidget>
+#include <KIconLoader>
 #include "dvbconfig.h"
 #include "dvbdevice.h"
 #include "dvbmanager.h"
 
-DvbConfigDialog::DvbConfigDialog(DvbManager *manager_, QWidget *parent) : KDialog(parent),
+DvbConfigDialog::DvbConfigDialog(DvbManager *manager_, QWidget *parent) : QDialog(parent),
 	manager(manager_)
 {
-	setCaption(i18nc("@title:window", "Configure Television"));
+	setWindowTitle(i18nc("@title:window", "Configure Television"));
 
-	tabWidget = new KTabWidget(this);
-	setMainWidget(tabWidget);
+	tabWidget = new QTabWidget(this);
+    QLayout* mainLayout = new QVBoxLayout(this);
+    mainLayout->addWidget(tabWidget);
+
+    QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    connect(buttonBox, SIGNAL(accepted()), SLOT(accept()));
+    connect(buttonBox, SIGNAL(rejected()), SLOT(reject()));
+    mainLayout->addWidget(buttonBox);
+
+	setLayout(mainLayout);
 
 	QWidget *widget = new QWidget(tabWidget);
 	QBoxLayout *boxLayout = new QVBoxLayout(widget);
@@ -59,7 +69,7 @@ DvbConfigDialog::DvbConfigDialog(DvbManager *manager_, QWidget *parent) : KDialo
 	gridLayout->addWidget(recordingFolderEdit, 0, 1);
 
 	QToolButton *toolButton = new QToolButton(widget);
-	toolButton->setIcon(KIcon(QLatin1String("document-open-folder")));
+	toolButton->setIcon(QIcon::fromTheme(QLatin1String("document-open-folder")));
 	toolButton->setToolTip(i18n("Select Folder"));
 	connect(toolButton, SIGNAL(clicked()), this, SLOT(changeRecordingFolder()));
 	gridLayout->addWidget(toolButton, 0, 2);
@@ -71,7 +81,7 @@ DvbConfigDialog::DvbConfigDialog(DvbManager *manager_, QWidget *parent) : KDialo
 	gridLayout->addWidget(timeShiftFolderEdit, 1, 1);
 
 	toolButton = new QToolButton(widget);
-	toolButton->setIcon(KIcon(QLatin1String("document-open-folder")));
+	toolButton->setIcon(QIcon::fromTheme(QLatin1String("document-open-folder")));
 	toolButton->setToolTip(i18n("Select Folder"));
 	connect(toolButton, SIGNAL(clicked()), this, SLOT(changeTimeShiftFolder()));
 	gridLayout->addWidget(toolButton, 1, 2);
@@ -107,7 +117,7 @@ DvbConfigDialog::DvbConfigDialog(DvbManager *manager_, QWidget *parent) : KDialo
 	boxLayout->addWidget(frame);
 
 	boxLayout->addWidget(new QLabel(i18n("Scan data last updated on %1",
-		KGlobal::locale()->formatDate(manager->getScanDataDate(), KLocale::ShortDate))));
+		QLocale().toString(manager->getScanDataDate(), QLocale::ShortFormat))));
 
 	QPushButton *pushButton = new QPushButton(i18n("Update scan data over Internet"), widget);
 	connect(pushButton, SIGNAL(clicked()), this, SLOT(updateScanFile()));
@@ -128,8 +138,8 @@ DvbConfigDialog::DvbConfigDialog(DvbManager *manager_, QWidget *parent) : KDialo
 	connect(latitudeEdit, SIGNAL(textChanged(QString)), this, SLOT(latitudeChanged(QString)));
 	gridLayout->addWidget(latitudeEdit, 0, 2);
 
-	validPixmap = KIcon(QLatin1String("dialog-ok-apply")).pixmap(KIconLoader::SizeSmallMedium);
-	invalidPixmap = KIcon(QLatin1String("dialog-cancel")).pixmap(KIconLoader::SizeSmallMedium);
+	validPixmap = QIcon::fromTheme(QLatin1String("dialog-ok-apply")).pixmap(KIconLoader::SizeSmallMedium);
+	invalidPixmap = QIcon::fromTheme(QLatin1String("dialog-cancel")).pixmap(KIconLoader::SizeSmallMedium);
 
 	latitudeValidLabel = new QLabel(widget);
 	latitudeValidLabel->setPixmap(validPixmap);
@@ -153,7 +163,7 @@ DvbConfigDialog::DvbConfigDialog(DvbManager *manager_, QWidget *parent) : KDialo
 
 	// FIXME more general options
 
-	tabWidget->addTab(widget, KIcon(QLatin1String("configure")), i18n("General Options"));
+	tabWidget->addTab(widget, QIcon::fromTheme(QLatin1String("configure")), i18n("General Options"));
 
 	int i = 1;
 
@@ -165,7 +175,7 @@ DvbConfigDialog::DvbConfigDialog(DvbManager *manager_, QWidget *parent) : KDialo
 			this, SLOT(moveRight(DvbConfigPage*)));
 		connect(configPage, SIGNAL(remove(DvbConfigPage*)),
 			this, SLOT(remove(DvbConfigPage*)));
-		tabWidget->addTab(configPage, KIcon(QLatin1String("video-television")), i18n("Device %1", i));
+		tabWidget->addTab(configPage, QIcon::fromTheme(QLatin1String("video-television")), i18n("Device %1", i));
 		configPages.append(configPage);
 		++i;
 	}
@@ -182,7 +192,7 @@ DvbConfigDialog::~DvbConfigDialog()
 
 void DvbConfigDialog::changeRecordingFolder()
 {
-	QString path = KFileDialog::getExistingDirectory(recordingFolderEdit->text(), this);
+	QString path = QFileDialog::getExistingDirectory(this, QString(), recordingFolderEdit->text());
 
 	if (path.isEmpty()) {
 		return;
@@ -193,7 +203,7 @@ void DvbConfigDialog::changeRecordingFolder()
 
 void DvbConfigDialog::changeTimeShiftFolder()
 {
-	QString path = KFileDialog::getExistingDirectory(timeShiftFolderEdit->text(), this);
+	QString path = QFileDialog::getExistingDirectory(this, QString(), timeShiftFolderEdit->text());
 
 	if (path.isEmpty()) {
 		return;
@@ -204,7 +214,7 @@ void DvbConfigDialog::changeTimeShiftFolder()
 
 void DvbConfigDialog::updateScanFile()
 {
-	KDialog *dialog = new DvbScanFileDownloadDialog(manager, this);
+	QDialog *dialog = new DvbScanFileDownloadDialog(manager, this);
 	dialog->setAttribute(Qt::WA_DeleteOnClose, true);
 	dialog->setModal(true);
 	dialog->show();
@@ -255,7 +265,7 @@ void DvbConfigDialog::moveLeft(DvbConfigPage *configPage)
 	}
 
 	// configPages and tabWidget indexes differ by one
-	tabWidget->insertTab(index, configPages.at(index - 1), KIcon(QLatin1String("video-television")),
+	tabWidget->insertTab(index, configPages.at(index - 1), QIcon::fromTheme(QLatin1String("video-television")),
 		i18n("Device %1", index));
 	tabWidget->setTabText(index + 1, i18n("Device %1", index + 1));
 	tabWidget->setCurrentIndex(index);
@@ -282,7 +292,7 @@ void DvbConfigDialog::moveRight(DvbConfigPage *configPage)
 	}
 
 	// configPages and tabWidget indexes differ by one
-	tabWidget->insertTab(index, configPages.at(index - 1), KIcon(QLatin1String("video-television")),
+	tabWidget->insertTab(index, configPages.at(index - 1), QIcon::fromTheme(QLatin1String("video-television")),
 		i18n("Device %1", index));
 	tabWidget->setTabText(index + 1, i18n("Device %1", index + 1));
 	tabWidget->setCurrentIndex(index + 1);
@@ -372,28 +382,28 @@ void DvbConfigDialog::accept()
 
 	manager->updateDeviceConfigs(configUpdates);
 
-	KDialog::accept();
+	QDialog::accept();
 }
 
 DvbScanFileDownloadDialog::DvbScanFileDownloadDialog(DvbManager *manager_, QWidget *parent) :
-	KDialog(parent), manager(manager_)
+	QDialog(parent), manager(manager_)
 {
-	setButtons(KDialog::Cancel);
-	setCaption(i18n("Update Scan Data"));
+	setWindowTitle(i18n("Update Scan Data"));
 
-	QWidget *widget = new QWidget(this);
-	setMainWidget(widget);
+	QBoxLayout *layout = new QVBoxLayout(this);
+	setLayout(layout);
 
-	QBoxLayout *layout = new QVBoxLayout(widget);
-
-	label = new QLabel(i18n("Downloading scan data"), widget);
+	label = new QLabel(i18n("Downloading scan data"), this);
 	layout->addWidget(label);
 
-	progressBar = new QProgressBar(widget);
+	progressBar = new QProgressBar(this);
 	progressBar->setRange(0, 100);
 	layout->addWidget(progressBar);
 
-	job = KIO::get(KUrl("http://kaffeine.kde.org/scanfile.dvb.qz"), KIO::NoReload,
+	buttonBox = new QDialogButtonBox(QDialogButtonBox::Cancel);
+    layout->addWidget(buttonBox);
+
+	job = KIO::get(QUrl("http://kaffeine.kde.org/scanfile.dvb.qz"), KIO::NoReload,
 		       KIO::HideProgressInfo); // FIXME NoReload or Reload?
 	job->setAutoDelete(false);
 	connect(job, SIGNAL(percent(KJob*,ulong)),
@@ -425,7 +435,7 @@ void DvbScanFileDownloadDialog::dataArrived(KIO::Job *, const QByteArray &data)
 void DvbScanFileDownloadDialog::jobFinished()
 {
 	progressBar->setValue(100);
-	setButtons(KDialog::Close);
+	buttonBox->setStandardButtons(QDialogButtonBox::Close);
 
 	if (job->error() != 0) {
 		if (job->error() == KJob::KilledJobError) {
@@ -453,22 +463,22 @@ DvbConfigPage::DvbConfigPage(QWidget *parent, DvbManager *manager,
 	boxLayout->addWidget(new QLabel(i18n("Name: %1", deviceConfig->frontendName)));
 
 	QBoxLayout *horizontalLayout = new QHBoxLayout();
-	moveLeftButton = new QPushButton(KIcon(QLatin1String("arrow-left")), i18n("Move Left"), this);
+	moveLeftButton = new QPushButton(QIcon::fromTheme(QLatin1String("arrow-left")), i18n("Move Left"), this);
 	connect(moveLeftButton, SIGNAL(clicked()), this, SLOT(moveLeft()));
 	horizontalLayout->addWidget(moveLeftButton);
 
 	if (deviceConfig->device != NULL) {
-		QPushButton *pushButton = new QPushButton(KIcon(QLatin1String("edit-undo")), i18n("Reset"), this);
+		QPushButton *pushButton = new QPushButton(QIcon::fromTheme(QLatin1String("edit-undo")), i18n("Reset"), this);
 		connect(pushButton, SIGNAL(clicked()), this, SIGNAL(resetConfig()));
 		horizontalLayout->addWidget(pushButton);
 	} else {
 		QPushButton *pushButton =
-			new QPushButton(KIcon(QLatin1String("edit-delete")), i18nc("@action", "Remove"), this);
+			new QPushButton(QIcon::fromTheme(QLatin1String("edit-delete")), i18nc("@action", "Remove"), this);
 		connect(pushButton, SIGNAL(clicked()), this, SLOT(removeConfig()));
 		horizontalLayout->addWidget(pushButton);
 	}
 
-	moveRightButton = new QPushButton(KIcon(QLatin1String("arrow-right")), i18n("Move Right"), this);
+	moveRightButton = new QPushButton(QIcon::fromTheme(QLatin1String("arrow-right")), i18n("Move Right"), this);
 	connect(moveRightButton, SIGNAL(clicked()), this, SLOT(moveRight()));
 	horizontalLayout->addWidget(moveRightButton);
 	boxLayout->addLayout(horizontalLayout);
@@ -1062,13 +1072,13 @@ void DvbSLnbConfigObject::sourceChanged(int index)
 
 void DvbSLnbConfigObject::configure()
 {
-	KDialog *dialog = new KDialog(configureButton);
+	QDialog *dialog = new QDialog(configureButton);
 	dialog->setAttribute(Qt::WA_DeleteOnClose);
-	dialog->setCaption(i18n("LNB Settings"));
+	dialog->setWindowTitle(i18n("LNB Settings"));
 
 	QWidget *mainWidget = new QWidget(dialog);
 	QGridLayout *gridLayout = new QGridLayout(mainWidget);
-	dialog->setMainWidget(mainWidget);
+	dialog->layout()->addWidget(mainWidget);
 
 	lnbSelectionGroup = new QButtonGroup(mainWidget);
 	connect(lnbSelectionGroup, SIGNAL(buttonClicked(int)), this, SLOT(selectType(int)));

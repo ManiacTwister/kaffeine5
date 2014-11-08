@@ -1,14 +1,22 @@
 project(kaffeine)
+cmake_minimum_required(VERSION 2.8.12)
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
+find_package(ECM REQUIRED NO_MODULE)
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules" ${ECM_MODULE_PATH})
 
-find_package(KDE4 REQUIRED)
+find_package(Qt5 REQUIRED COMPONENTS Sql Widgets X11Extras)
+find_package(KF5 REQUIRED COMPONENTS DBusAddons KDELibs4Support)
 find_package(X11 REQUIRED)
 find_package(VLC 1.2 REQUIRED)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_BINARY_DIR} ${KDE4_INCLUDES} ${VLC_INCLUDE_DIRS}
+include(CheckIncludeFiles)
+include(KDEInstallDirs)
+include(ECMOptionalAddSubdirectory)
+
+set(CMAKE_AUTOMOC ON)
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_BINARY_DIR} ${VLC_INCLUDE_DIRS}
                     ${X11_Xscreensaver_INCLUDE_PATH})
-add_definitions(${KDE4_DEFINITIONS})
 
 if(STRICT_BUILD)
   add_definitions(-Werror -Weverything -Wno-packed -Wno-padded -Wno-sign-conversion -Wno-unreachable-code
@@ -33,7 +41,7 @@ add_subdirectory(dtvdaemon)
 add_subdirectory(icons)
 add_subdirectory(profiles)
 add_subdirectory(src)
-macro_optional_add_subdirectory(po)
+ecm_optional_add_subdirectory(po)
 
 if(BUILD_TOOLS)
   add_subdirectory(tools)

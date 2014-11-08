@@ -25,9 +25,10 @@
 #include <QPainter>
 #include <QSet>
 #include <QSocketNotifier>
-#include <KLocale>
+#include <QStandardPaths>
+#include <QLocale>
+#include <KLocalizedString>
 #include <KMessageBox>
-#include <KStandardDirs>
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/stat.h> // bsd compatibility
@@ -57,13 +58,13 @@ QPixmap DvbOsd::paintOsd(QRect &rect, const QFont &font, Qt::LayoutDirection)
 	QFont osdFont = font;
 	osdFont.setPointSize(20);
 
-	QString timeString = KGlobal::locale()->formatTime(QTime::currentTime());
+	QString timeString = QLocale().toString(QTime::currentTime());
 	QString entryString;
 	int elapsedTime = 0;
 	int totalTime = 0;
 
 	if (firstEntry.channel.isValid()) {
-		entryString = KGlobal::locale()->formatTime(firstEntry.begin.toLocalTime().time())
+		entryString = QLocale().toString(firstEntry.begin.toLocalTime().time())
 			+ QLatin1Char(' ') + firstEntry.title;
 		elapsedTime = firstEntry.begin.secsTo(QDateTime::currentDateTime());
 		totalTime = QTime().secsTo(firstEntry.duration);
@@ -71,7 +72,7 @@ QPixmap DvbOsd::paintOsd(QRect &rect, const QFont &font, Qt::LayoutDirection)
 
 	if ((level == ShortOsd) && secondEntry.channel.isValid()) {
 		entryString = entryString + QLatin1Char('\n') +
-			KGlobal::locale()->formatTime(secondEntry.begin.toLocalTime().time()) +
+			QLocale().toString(secondEntry.begin.toLocalTime().time()) +
 			QLatin1Char(' ') + secondEntry.title;
 	}
 
@@ -573,9 +574,9 @@ void DvbLiveView::updatePids(bool forcePatPmtUpdate)
 DvbLiveViewInternal::DvbLiveViewInternal(QObject *parent) : QObject(parent), mediaWidget(NULL),
 	readFd(-1), writeFd(-1)
 {
-	QString fileName = KStandardDirs::locateLocal("appdata", QLatin1String("dvbpipe.m2t"));
+	QString fileName = QStandardPaths::writableLocation(QStandardPaths::DataLocation) + "/" + QLatin1String("dvbpipe.m2t");
 	QFile::remove(fileName);
-	url = KUrl::fromLocalFile(fileName);
+	url = QUrl::fromLocalFile(fileName);
 
 	if (mkfifo(QFile::encodeName(fileName).constData(), 0600) != 0) {
 		Log("DvbLiveViewInternal::DvbLiveViewInternal: mkfifo failed");

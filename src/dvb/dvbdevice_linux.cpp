@@ -21,9 +21,7 @@
 #include "dvbdevice_linux.h"
 
 #include <QFile>
-#include <Solid/Device>
-#include <Solid/DeviceNotifier>
-#include <Solid/DvbInterface>
+#include <QSocketNotifier>
 #include <dmx.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -33,6 +31,8 @@
 #include <unistd.h>
 #include "../log.h"
 #include "dvbtransponder.h"
+
+#include <libudev.h>
 
 // krazy:excludeall=syscalls
 
@@ -810,36 +810,53 @@ void DvbLinuxDevice::run()
 
 DvbLinuxDeviceManager::DvbLinuxDeviceManager(QObject *parent) : QObject(parent)
 {
-	QObject *notifier = Solid::DeviceNotifier::instance();
-	connect(notifier, SIGNAL(deviceAdded(QString)), this, SLOT(componentAdded(QString)));
-	connect(notifier, SIGNAL(deviceRemoved(QString)), this, SLOT(componentRemoved(QString)));
+    udev = udev_new();
+
+    monitor = udev_monitor_new_from_netlink(udev, "udev");
+    if (!monitor) {
+        qWarning("UdevQt: unable to create udev monitor connection");
+        return;
+    }
+    udev_monitor_enable_receiving(monitor);
+    monitorNotifier = new QSocketNotifier(udev_monitor_get_fd(monitor), QSocketNotifier::Read);
+    connect(monitorNotifier, SIGNAL(activated(int)), SLOT(monitorActivated()));
 }
 
 DvbLinuxDeviceManager::~DvbLinuxDeviceManager()
 {
+    delete monitorNotifier;
+    udev_monitor_unref(monitor);
+    udev_unref(udev);
 }
 
 void DvbLinuxDeviceManager::doColdPlug()
 {
-	foreach (const Solid::Device &device,
-		 Solid::Device::listFromType(Solid::DeviceInterface::DvbInterface)) {
-		componentAdded(device.udi());
-	}
+    udev_enumerate* en = udev_enumerate_new(udev);
+    udev_enumerate_add_match_subsystem(en, "dvb");
+    udev_enumerate_scan_devices(en);
+    udev_list_entry *entry, *list;
+    list = udev_enumerate_get_list_entry(en);
+    udev_list_entry_foreach(entry, list)
+        componentAdded(udev_list_entry_get_name(entry));
+    udev_enumerate_unref(en);
 }
 
 void DvbLinuxDeviceManager::componentAdded(const QString &udi)
 {
-	const Solid::DvbInterface *dvbInterface = Solid::Device(udi).as<Solid::DvbInterface>();
+    udev_device* dvbDevice = udev_device_new_from_syspath(udev, udi.toLatin1().constData());
 
-	if (dvbInterface == NULL) {
+	if (!dvbDevice)
 		return;
-	}
 
-	int adapter = dvbInterface->deviceAdapter();
-	int index = dvbInterface->deviceIndex();
-	QString devicePath = dvbInterface->device();
+	bool adapter_ok, index_ok;
+	int adapter = QString(udev_device_get_property_value(dvbDevice, "DVB_ADAPTER_NUM")).toInt(&adapter_ok);
+	int index = QString(udev_device_get_property_value(dvbDevice, "DVB_DEVICE_NUM")).toInt(&index_ok);
+    QString deviceType = udev_device_get_property_value(dvbDevice, "DVB_DEVICE_TYPE");
+	QString devicePath = udev_device_get_property_value(dvbDevice, "DEVNAME");
 
-	if ((adapter < 0) || (adapter > 0x7fff) || (index < 0) || (index > 0x7fff)) {
+    udev_device_unref(dvbDevice);
+
+	if (!adapter_ok || (adapter < 0) || (adapter > 0x7fff) || !index_ok || (index < 0) || (index > 0x7fff)) {
 		Log("DvbLinuxDeviceManager::componentAdded: "
 		    "cannot determine adapter or index for device") << udi;
 		return;
@@ -861,8 +878,7 @@ void DvbLinuxDeviceManager::componentAdded(const QString &udi)
 
 	bool addDevice = false;
 
-	switch (dvbInterface->deviceType()) {
-	case Solid::DvbInterface::DvbCa:
+	if ( deviceType == "ca" )
 		if (device->caPath.isEmpty()) {
 			device->caPath = devicePath;
 			device->caUdi = udi;
@@ -873,8 +889,7 @@ void DvbLinuxDeviceManager::componentAdded(const QString &udi)
 			}
 		}
 
-		break;
-	case Solid::DvbInterface::DvbDemux:
+	if ( deviceType == "demux" )
 		if (device->demuxPath.isEmpty()) {
 			device->demuxPath = devicePath;
 			device->demuxUdi = udi;
@@ -882,8 +897,7 @@ void DvbLinuxDeviceManager::componentAdded(const QString &udi)
 			addDevice = true;
 		}
 
-		break;
-	case Solid::DvbInterface::DvbDvr:
+	if ( deviceType == "dvr" )
 		if (device->dvrPath.isEmpty()) {
 			device->dvrPath = devicePath;
 			device->dvrUdi = udi;
@@ -891,8 +905,7 @@ void DvbLinuxDeviceManager::componentAdded(const QString &udi)
 			addDevice = true;
 		}
 
-		break;
-	case Solid::DvbInterface::DvbFrontend:
+	if ( deviceType == "frontend" )
 		if (device->frontendPath.isEmpty()) {
 			device->frontendPath = devicePath;
 			device->frontendUdi = udi;
@@ -900,10 +913,6 @@ void DvbLinuxDeviceManager::componentAdded(const QString &udi)
 			addDevice = true;
 		}
 
-		break;
-	default:
-		break;
-	}
 
 	if (addDevice && !device->demuxPath.isEmpty() && !device->dvrPath.isEmpty() &&
 	    !device->frontendPath.isEmpty()) {
@@ -979,6 +988,21 @@ void DvbLinuxDeviceManager::componentRemoved(const QString &udi)
 		emit deviceRemoved(device);
 		device->stopDevice();
 	}
+}
+
+void DvbLinuxDeviceManager::monitorActivated()
+{
+    monitorNotifier->setEnabled(false);
+    struct udev_device* dvbDevice = udev_monitor_receive_device(monitor);
+    monitorNotifier->setEnabled(true);
+    if (!dvbDevice)
+        return;
+    QByteArray action(udev_device_get_action(dvbDevice));
+    QString udi(udev_device_get_syspath(dvbDevice));
+    if (action == "add")
+        emit componentAdded(udi);
+    else if (action == "remove")
+        emit componentRemoved(udi);
 }
 
 int DvbLinuxDeviceManager::readSysAttr(const QString &path)

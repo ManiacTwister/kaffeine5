@@ -26,11 +26,12 @@
 #include <QSplitter>
 #include <QThread>
 #include <QToolButton>
-#include <KAction>
+#include <QAction>
 #include <KActionCollection>
 #include <KLineEdit>
-#include <KLocale>
-#include <KMenu>
+#include <KLocalizedString>
+#include <KConfigGroup>
+#include <QMenu>
 #include <KMessageBox>
 #include "../log.h"
 #include "../osdwidget.h"
@@ -78,27 +79,28 @@ void DvbTimeShiftCleaner::run()
 	}
 }
 
-DvbTab::DvbTab(KMenu *menu, KActionCollection *collection, MediaWidget *mediaWidget_) :
-	mediaWidget(mediaWidget_)
+DvbTab::DvbTab(QMenu *menu, KActionCollection *collection, MediaWidget *mediaWidget_) :
+	mediaWidget(mediaWidget_),
+	config(KSharedConfig::openConfig())
 {
 	manager = new DvbManager(mediaWidget, this);
 
-	KAction *channelsAction = new KAction(KIcon(QLatin1String("video-television")), i18n("Channels"), this);
+	QAction *channelsAction = new QAction(QIcon::fromTheme(QLatin1String("video-television")), i18n("Channels"), this);
 	channelsAction->setShortcut(Qt::Key_C);
 	connect(channelsAction, SIGNAL(triggered(bool)), this, SLOT(showChannelDialog()));
 	menu->addAction(collection->addAction(QLatin1String("dvb_channels"), channelsAction));
 
-	KAction *epgAction = new KAction(KIcon(QLatin1String("view-list-details")), i18n("Program Guide"), this);
+	QAction *epgAction = new QAction(QIcon::fromTheme(QLatin1String("view-list-details")), i18n("Program Guide"), this);
 	epgAction->setShortcut(Qt::Key_G);
 	connect(epgAction, SIGNAL(triggered(bool)), this, SLOT(toggleEpgDialog()));
 	menu->addAction(collection->addAction(QLatin1String("dvb_epg"), epgAction));
 
-	KAction *osdAction = new KAction(KIcon(QLatin1String("dialog-information")), i18n("OSD"), this);
+	QAction *osdAction = new QAction(QIcon::fromTheme(QLatin1String("dialog-information")), i18n("OSD"), this);
 	osdAction->setShortcut(Qt::Key_O);
 	connect(osdAction, SIGNAL(triggered(bool)), manager->getLiveView(), SLOT(toggleOsd()));
 	menu->addAction(collection->addAction(QLatin1String("dvb_osd"), osdAction));
 
-	KAction *recordingsAction = new KAction(KIcon(QLatin1String("view-pim-calendar")),
+	QAction *recordingsAction = new QAction(QIcon::fromTheme(QLatin1String("view-pim-calendar")),
 		i18nc("dialog", "Recording Schedule"), this);
 	recordingsAction->setShortcut(Qt::Key_R);
 	connect(recordingsAction, SIGNAL(triggered(bool)), this, SLOT(showRecordingDialog()));
@@ -106,14 +108,14 @@ DvbTab::DvbTab(KMenu *menu, KActionCollection *collection, MediaWidget *mediaWid
 
 	menu->addSeparator();
 
-	instantRecordAction = new KAction(KIcon(QLatin1String("document-save")), i18n("Instant Record"), this);
+	instantRecordAction = new QAction(QIcon::fromTheme(QLatin1String("document-save")), i18n("Instant Record"), this);
 	instantRecordAction->setCheckable(true);
 	connect(instantRecordAction, SIGNAL(triggered(bool)), this, SLOT(instantRecord(bool)));
 	menu->addAction(collection->addAction(QLatin1String("dvb_instant_record"), instantRecordAction));
 
 	menu->addSeparator();
 
-	KAction *configureAction = new KAction(KIcon(QLatin1String("configure")),
+	QAction *configureAction = new QAction(QIcon::fromTheme(QLatin1String("configure")),
 		i18nc("@action:inmenu", "Configure Television..."), this);
 	connect(configureAction, SIGNAL(triggered()), this, SLOT(configureDvb()));
 	menu->addAction(collection->addAction(QLatin1String("settings_dvb"), configureAction));
@@ -148,7 +150,7 @@ DvbTab::DvbTab(KMenu *menu, KActionCollection *collection, MediaWidget *mediaWid
 	channelView->setRootIsDecorated(false);
 
 	if (!channelView->header()->restoreState(QByteArray::fromBase64(
-	    KGlobal::config()->group("DVB").readEntry("ChannelViewState", QByteArray())))) {
+	    config->group("DVB").readEntry("ChannelViewState", QByteArray())))) {
 		channelView->sortByColumn(0, Qt::AscendingOrder);
 	}
 
@@ -197,10 +199,10 @@ DvbTab::DvbTab(KMenu *menu, KActionCollection *collection, MediaWidget *mediaWid
 	connect(mediaWidget, SIGNAL(osdKeyPressed(int)), this, SLOT(osdKeyPressed(int)));
 	connect(&osdChannelTimer, SIGNAL(timeout()), this, SLOT(tuneOsdChannel()));
 
-	lastChannel = KGlobal::config()->group("DVB").readEntry("LastChannel");
+	lastChannel = config->group("DVB").readEntry("LastChannel");
 
 	splitter->restoreState(QByteArray::fromBase64(
-		KGlobal::config()->group("DVB").readEntry("TabSplitterState", QByteArray())));
+		config->group("DVB").readEntry("TabSplitterState", QByteArray())));
 
 	timeShiftCleaner = new DvbTimeShiftCleaner(this);
 
@@ -211,16 +213,16 @@ DvbTab::DvbTab(KMenu *menu, KActionCollection *collection, MediaWidget *mediaWid
 
 DvbTab::~DvbTab()
 {
-	KGlobal::config()->group("DVB").writeEntry("TabSplitterState",
+	config->group("DVB").writeEntry("TabSplitterState",
 		splitter->saveState().toBase64());
-	KGlobal::config()->group("DVB").writeEntry("ChannelViewState",
+	config->group("DVB").writeEntry("ChannelViewState",
 		channelView->header()->saveState().toBase64());
 
 	if (!currentChannel.isEmpty()) {
 		lastChannel = currentChannel;
 	}
 
-	KGlobal::config()->group("DVB").writeEntry("LastChannel", lastChannel);
+	config->group("DVB").writeEntry("LastChannel", lastChannel);
 }
 
 void DvbTab::playChannel(const QString &nameOrNumber)
@@ -311,7 +313,7 @@ void DvbTab::mayCloseApplication(bool *ok, QWidget *parent)
 
 void DvbTab::showChannelDialog()
 {
-	KDialog *dialog = new DvbScanDialog(manager, this);
+	QDialog *dialog = new DvbScanDialog(manager, this);
 	dialog->setAttribute(Qt::WA_DeleteOnClose, true);
 	dialog->setModal(true);
 	dialog->show();
@@ -384,7 +386,7 @@ void DvbTab::recordingRemoved(const DvbSharedRecording &recording)
 
 void DvbTab::configureDvb()
 {
-	KDialog *dialog = new DvbConfigDialog(manager, this);
+	QDialog *dialog = new DvbConfigDialog(manager, this);
 	dialog->setAttribute(Qt::WA_DeleteOnClose, true);
 	dialog->setModal(true);
 	dialog->show();
