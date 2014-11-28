@@ -61,7 +61,6 @@ bool VlcMediaWidget::init()
 
 	libvlc_media_player_set_xwindow(vlcMediaPlayer, quint32(winId()));
 	setAttribute(Qt::WA_NativeWindow);
-	setAttribute(Qt::WA_PaintOnScreen);
 	return true;
 }
 
