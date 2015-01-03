@@ -120,11 +120,11 @@ protected:
 	int currentAngle;
 	bool dvdMenu;
 	QSize videoSize;
+	MediaWidget *mediaWidget;
 
 private:
 	void customEvent(QEvent *event);
 
-	MediaWidget *mediaWidget;
 	QAtomicInt pendingUpdates;
 };
 

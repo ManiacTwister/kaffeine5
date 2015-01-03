@@ -264,7 +264,7 @@ public:
 	virtual void metadataChanged(const QMap<MediaWidget::MetadataType, QString> &) { }
 	virtual void playbackFinished() { }
 	virtual void playbackStatusChanged(MediaWidget::PlaybackStatus ) { }
-	virtual void replay() { }
+	virtual void replay() { weakMediaWidget.data()->play(this); }
 	virtual void previous() { }
 	virtual void next() { }
 

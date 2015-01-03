@@ -523,7 +523,8 @@ void VlcMediaWidget::vlcEvent(const libvlc_event_t *event)
 		pendingUpdatesToBeAdded = Seekable;
 		break;
 	case libvlc_MediaPlayerStopped:
-		pendingUpdatesToBeAdded = PlaybackStatus;
+		playbackStatus = MediaWidget::Idle;
+		mediaWidget->playbackStatusChanged();
 		break;
 	case libvlc_MediaPlayerTimeChanged:
 		pendingUpdatesToBeAdded = CurrentTotalTime;
