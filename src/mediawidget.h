@@ -144,6 +144,7 @@ signals:
 	void displayModeChanged();
 	void changeCaption(const QString &caption);
 	void resizeToVideo(MediaWidget::ResizeFactor resizeFactor);
+	void open();
 
 	void playlistUrlsDropped(const QList<QUrl> &urls);
 	void osdKeyPressed(int key);

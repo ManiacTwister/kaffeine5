@@ -768,7 +768,10 @@ void MediaWidget::pausedChanged(bool paused)
 {
 	switch (backend->getPlaybackStatus()) {
 	case Idle:
-		source->replay();
+		if (source != dummySource.data())
+			source->replay();
+		else
+			emit open();
 		break;
 	case Playing:
 	case Paused:

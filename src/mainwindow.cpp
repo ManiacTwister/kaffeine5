@@ -257,6 +257,7 @@ MainWindow::MainWindow()
 	connect(mediaWidget, SIGNAL(changeCaption(QString)), this, SLOT(setCaption(QString)));
 	connect(mediaWidget, SIGNAL(resizeToVideo(MediaWidget::ResizeFactor)),
 		this, SLOT(resizeToVideo(MediaWidget::ResizeFactor)));
+	connect(mediaWidget, SIGNAL(open()), this, SLOT(open()));
 
 	// tabs - keep in sync with TabIndex enum!
 
