@@ -2,9 +2,9 @@
 Installing Kaffeine
 -------------------
 
-The following development headers are needed (recommended versions):
-* Qt >= 4.6
-* KDE >= 4.4
+The following development headers are needed:
+* Qt5
+* KF5
 * libX11
 * libXss
 
@@ -20,7 +20,7 @@ Useful options include:
 * -DCMAKE_BUILD_TYPE=<type> (Debug or Release)
 * -DCMAKE_INSTALL_PREFIX=<path> (installation prefix for Kaffeine, e.g. /usr)
 
-For further information look for generic KDE4 / cmake instructions.
+For further information look for generic KF5 / cmake instructions.
 
 --------
 Homepage
