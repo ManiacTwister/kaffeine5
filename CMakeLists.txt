@@ -4,8 +4,8 @@ cmake_minimum_required(VERSION 2.8.12)
 find_package(ECM REQUIRED NO_MODULE)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules" ${ECM_MODULE_PATH})
 
-find_package(Qt5 REQUIRED COMPONENTS Sql Widgets X11Extras)
-find_package(KF5 REQUIRED COMPONENTS DBusAddons KDELibs4Support)
+find_package(Qt5 REQUIRED COMPONENTS Network Sql Widgets X11Extras)
+find_package(KF5 REQUIRED COMPONENTS Completion DBusAddons I18n IconThemes KIO Notifications WidgetsAddons XmlGui)
 find_package(X11 REQUIRED)
 find_package(VLC 1.2 REQUIRED)
 

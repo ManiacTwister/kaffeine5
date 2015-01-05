@@ -123,7 +123,7 @@ QUrl Playlist::fromFileOrUrl(const QString &fileOrUrl) const
 	if (trackUrl.isRelative()) {
 		trackUrl = url.resolved(QUrl::fromLocalFile(fileOrUrl));
 
-		if (trackUrl.encodedPath() == url.encodedPath()) {
+		if (trackUrl.path(QUrl::FullyEncoded) == url.path(QUrl::FullyEncoded)) {
 			return QUrl();
 		}
 	}
@@ -164,17 +164,17 @@ QString Playlist::toFileOrUrl(const QUrl &trackUrl) const
 QString Playlist::toRelativeUrl(const QUrl &trackUrl) const
 {
 	if ((trackUrl.scheme() == url.scheme()) && (trackUrl.authority() == url.authority())) {
-		QByteArray playlistPath = url.encodedPath();
+		QByteArray playlistPath = url.path(QUrl::FullyEncoded).toLatin1();
 		int index = playlistPath.lastIndexOf('/');
 		playlistPath.truncate(index + 1);
-		QByteArray trackPath = trackUrl.encodedPath();
+		QByteArray trackPath = trackUrl.path(QUrl::FullyEncoded).toLatin1();
 
 		if (trackPath.startsWith(playlistPath)) {
 			trackPath.remove(0, index + 1);
 			QUrl relativeUrl;
-			relativeUrl.setEncodedPath(trackPath);
-			relativeUrl.setEncodedQuery(trackUrl.encodedQuery());
-			relativeUrl.setEncodedFragment(trackUrl.encodedFragment());
+			relativeUrl.setPath(trackPath, QUrl::TolerantMode);
+			relativeUrl.setQuery(trackUrl.query(QUrl::FullyEncoded));
+			relativeUrl.setFragment(trackUrl.fragment(QUrl::FullyEncoded));
 			return relativeUrl.url();
 		}
 	}
@@ -499,18 +499,23 @@ void Playlist::saveXSPFPlaylist(QIODevice *device) const
 PlaylistModel::PlaylistModel(Playlist *visiblePlaylist_, QObject *parent) :
 	QAbstractTableModel(parent), visiblePlaylist(visiblePlaylist_)
 {
-	setSupportedDragActions(Qt::MoveAction);
 }
 
 PlaylistModel::~PlaylistModel()
 {
 }
 
+Qt::DropActions PlaylistModel::supportedDragActions() const
+{
+	return Qt::MoveAction;
+}
+
 void PlaylistModel::setVisiblePlaylist(Playlist *visiblePlaylist_)
 {
 	if (visiblePlaylist != visiblePlaylist_) {
 		visiblePlaylist = visiblePlaylist_;
-		reset();
+		beginResetModel();
+		endResetModel();
 	}
 }
 
@@ -642,7 +647,8 @@ void PlaylistModel::clearVisiblePlaylist()
 		emit playTrack(visiblePlaylist, -1);
 	}
 
-	reset();
+	beginResetModel();
+	endResetModel();
 }
 
 void PlaylistModel::insertUrls(Playlist *playlist, int row, const QList<QUrl> &urls,

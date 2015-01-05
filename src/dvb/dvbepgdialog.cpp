@@ -79,7 +79,7 @@ DvbEpgDialog::DvbEpgDialog(DvbManager *manager_, QWidget *parent) : QDialog(pare
 
 	epgView = new QTreeView(widget);
 	epgView->addAction(scheduleAction);
-	epgView->header()->setResizeMode(QHeaderView::ResizeToContents);
+	epgView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 	epgView->setContextMenuPolicy(Qt::ActionsContextMenu);
 	epgView->setMinimumWidth(75 * fontMetrics().averageCharWidth());
 	epgView->setModel(epgTableModel);

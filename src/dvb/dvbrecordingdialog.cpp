@@ -43,7 +43,7 @@ DvbRecordingDialog::DvbRecordingDialog(DvbManager *manager_, QWidget *parent) : 
 
 	model = new DvbRecordingTableModel(this);
 	treeView = new QTreeView(this);
-	treeView->header()->setResizeMode(QHeaderView::ResizeToContents);
+	treeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 	treeView->setContextMenuPolicy(Qt::ActionsContextMenu);
 	treeView->setModel(model);
 	treeView->setRootIsDecorated(false);

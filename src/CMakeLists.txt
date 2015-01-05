@@ -39,10 +39,10 @@ endif(HAVE_DVB)
 
 configure_file(config-kaffeine.h.cmake ${CMAKE_BINARY_DIR}/config-kaffeine.h)
 
-kde4_add_executable(kaffeine ${kaffeinedvb_SRCS} ${kaffeine_SRCS})
+add_executable(kaffeine ${kaffeinedvb_SRCS} ${kaffeine_SRCS})
 target_link_libraries(kaffeine
-    Qt5::Widgets
     Qt5::Sql
+    Qt5::Widgets
     Qt5::X11Extras
     KF5::Completion
     KF5::I18n

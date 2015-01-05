@@ -23,6 +23,7 @@
 
 #include <QWidget>
 #include <QIcon>
+#include <QPointer>
 #include <QUrl>
 
 class QActionGroup;
@@ -265,7 +266,7 @@ public:
 	virtual void metadataChanged(const QMap<MediaWidget::MetadataType, QString> &) { }
 	virtual void playbackFinished() { }
 	virtual void playbackStatusChanged(MediaWidget::PlaybackStatus ) { }
-	virtual void replay() { weakMediaWidget.data()->play(this); }
+	virtual void replay() { weakMediaWidget->play(this); }
 	virtual void previous() { }
 	virtual void next() { }
 
@@ -283,7 +284,7 @@ public:
 	}
 
 private:
-	QWeakPointer<MediaWidget> weakMediaWidget;
+	QPointer<MediaWidget> weakMediaWidget;
 };
 
 #endif /* MEDIAWIDGET_H */
