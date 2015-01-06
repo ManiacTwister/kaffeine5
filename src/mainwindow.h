@@ -24,6 +24,7 @@
 #include <KMainWindow>
 #include "mediawidget.h"
 
+class KHelpMenu;
 class QStackedLayout;
 class KCmdLineOptions;
 class KRecentFilesAction;
@@ -92,6 +93,8 @@ private:
 	PlayerTab *playerTab;
 	PlaylistTab *playlistTab;
 	DvbTab *dvbTab;
+
+	KHelpMenu* helpMenu;
 };
 
 #endif /* MAINWINDOW_H */

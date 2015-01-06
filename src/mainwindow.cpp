@@ -36,6 +36,7 @@
 #include <QTabBar>
 #include <KLocalizedString>
 #include <KToolBar>
+#include <KHelpMenu>
 #include <KConfigGroup>
 #include "dvb/dvbtab.h"
 #include "playlist/playlisttab.h"
@@ -154,6 +155,8 @@ MainWindow::MainWindow()
 	QMenuBar *menuBar = KMainWindow::menuBar();
 	collection = new KActionCollection(this);
 
+	helpMenu = new KHelpMenu;
+
 	QMenu *menu = new QMenu(i18n("&File"), this);
 	menuBar->addMenu(menu);
 
@@ -215,7 +218,7 @@ MainWindow::MainWindow()
 	menu->addAction(collection->addAction(QLatin1String("settings_kaffeine"), action));
 
 	menuBar->addSeparator();
-	menuBar->addMenu(helpMenu());
+	menuBar->addMenu(helpMenu->menu());
 
 	// navigation bar - keep in sync with TabIndex enum!
 
@@ -359,6 +362,8 @@ MainWindow::MainWindow()
 
 MainWindow::~MainWindow()
 {
+	delete helpMenu;
+
 	actionOpenRecent->saveEntries(Configuration::instance()->config()->group("Recent Files"));
 
 	int value = 0;
